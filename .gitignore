@@ -1,0 +1,37 @@
+# Build artifacts
+/target/
+/.mvn/
+
+# IDE files
+/.idea/
+*.iml
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+
+# Compiled Java
+*.class
+
+# Logs
+*.log
+
+# Secrets & env files
+.env
+.env.*
+!/.env.example
+application-local.properties
+application-secret.properties
+**/application-local.properties
+**/application-secret.properties
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Keep project files tracked
+!pom.xml
+!src/
+!README.md
+!application.properties
+!frontend/
+!test/

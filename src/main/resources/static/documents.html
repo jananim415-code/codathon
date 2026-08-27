@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documents | ProjectSphere</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">P</div>
+            <div>
+                <h1>ProjectSphere</h1>
+                <small>Unified Student Collaboration</small>
+            </div>
+        </div>
+        <nav>
+            <a href="/index.html">Dashboard</a>
+            <a href="/teams.html">Teams</a>
+            <a href="/projects.html">Projects</a>
+            <a href="/tasks.html">Tasks</a>
+            <a href="/documents.html" class="active">Documents</a>
+            <a href="/intelligence.html">Team Intelligence</a>
+            <a href="/reports.html">Reports</a>
+        </nav>
+    </aside>
+    <main class="content">
+        <header class="topbar"><div><h2>Documents</h2></div></header>
+        <section class="panel">
+            <h3>Create Document</h3>
+            <form id="documentForm" class="form-grid">
+                <input name="title" placeholder="Document title" required>
+                <input name="projectId" placeholder="Project ID" required>
+                <input name="createdById" placeholder="Created by user ID" required>
+                <textarea name="content" rows="8" placeholder="Document content"></textarea>
+                <button type="submit" class="primary-btn">Save Document</button>
+            </form>
+        </section>
+        <section class="panel">
+            <h3>Project Documents</h3>
+            <div id="documentList" class="document-list"></div>
+        </section>
+    </main>
+</div>
+<script src="/js/api.js"></script>
+<script src="/js/documents.js"></script>
+</body>
+</html>

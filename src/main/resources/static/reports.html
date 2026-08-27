@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports | ProjectSphere</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">P</div>
+            <div>
+                <h1>ProjectSphere</h1>
+                <small>Unified Student Collaboration</small>
+            </div>
+        </div>
+        <nav>
+            <a href="/index.html">Dashboard</a>
+            <a href="/teams.html">Teams</a>
+            <a href="/projects.html">Projects</a>
+            <a href="/tasks.html">Tasks</a>
+            <a href="/documents.html">Documents</a>
+            <a href="/intelligence.html">Team Intelligence</a>
+            <a href="/reports.html" class="active">Reports</a>
+        </nav>
+    </aside>
+    <main class="content">
+        <header class="topbar"><div><h2>Reports</h2></div></header>
+        <section class="panel">
+            <h3>Download reports</h3>
+            <div class="report-actions">
+                <a id="projectReportLink" class="primary-btn" href="/api/reports/project/1">Download Project Report</a>
+                <a id="userReportLink" class="secondary-btn" href="/api/reports/project/1/user/1">Download User Report</a>
+            </div>
+        </section>
+    </main>
+</div>
+<script src="/js/api.js"></script>
+<script src="/js/reports.js"></script>
+</body>
+</html>

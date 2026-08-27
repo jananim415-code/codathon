@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Intelligence | ProjectSphere</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">P</div>
+            <div>
+                <h1>ProjectSphere</h1>
+                <small>Unified Student Collaboration</small>
+            </div>
+        </div>
+        <nav>
+            <a href="/index.html">Dashboard</a>
+            <a href="/teams.html">Teams</a>
+            <a href="/projects.html">Projects</a>
+            <a href="/tasks.html">Tasks</a>
+            <a href="/documents.html">Documents</a>
+            <a href="/intelligence.html" class="active">Team Intelligence</a>
+            <a href="/reports.html">Reports</a>
+        </nav>
+    </aside>
+    <main class="content">
+        <header class="topbar">
+            <div><h2>Team Intelligence Engine</h2></div>
+            <button id="runAnalysisBtn" class="primary-btn">RUN INTELLIGENCE ANALYSIS</button>
+        </header>
+        <section class="stats-grid intelligence-grid">
+            <div class="panel stat-card">
+                <h3>Contribution Scorer</h3>
+                <div id="contributionCard"></div>
+            </div>
+            <div class="panel stat-card">
+                <h3>Free-Rider Detector</h3>
+                <div id="freeRiderCard"></div>
+            </div>
+            <div class="panel stat-card">
+                <h3>Project Health</h3>
+                <div id="healthCard"></div>
+            </div>
+        </section>
+    </main>
+</div>
+<script src="/js/api.js"></script>
+<script src="/js/intelligence.js"></script>
+</body>
+</html>

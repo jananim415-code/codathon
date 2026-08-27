@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks | ProjectSphere</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">P</div>
+            <div>
+                <h1>ProjectSphere</h1>
+                <small>Unified Student Collaboration</small>
+            </div>
+        </div>
+        <nav>
+            <a href="/index.html">Dashboard</a>
+            <a href="/teams.html">Teams</a>
+            <a href="/projects.html">Projects</a>
+            <a href="/tasks.html" class="active">Tasks</a>
+            <a href="/documents.html">Documents</a>
+            <a href="/intelligence.html">Team Intelligence</a>
+            <a href="/reports.html">Reports</a>
+        </nav>
+    </aside>
+    <main class="content">
+        <header class="topbar"><div><h2>Tasks</h2></div></header>
+        <section class="panel">
+            <h3>Create Task</h3>
+            <form id="taskForm" class="form-grid">
+                <input name="title" placeholder="Task title" required>
+                <input name="description" placeholder="Description">
+                <select name="status">
+                    <option value="TODO">TODO</option>
+                    <option value="IN_PROGRESS">IN PROGRESS</option>
+                    <option value="COMPLETED">COMPLETED</option>
+                </select>
+                <select name="priority">
+                    <option value="LOW">LOW</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="HIGH">HIGH</option>
+                </select>
+                <input name="dueDate" type="date">
+                <input name="projectId" placeholder="Project ID">
+                <input name="assignedUserId" placeholder="Assigned user ID">
+                <button type="submit" class="primary-btn">Create Task</button>
+            </form>
+        </section>
+        <section class="panel">
+            <h3>Task Board</h3>
+            <div id="taskList" class="task-board"></div>
+        </section>
+    </main>
+</div>
+<script src="/js/api.js"></script>
+<script src="/js/tasks.js"></script>
+</body>
+</html>

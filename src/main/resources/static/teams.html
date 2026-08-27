@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teams | ProjectSphere</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">P</div>
+            <div>
+                <h1>ProjectSphere</h1>
+                <small>Unified Student Collaboration</small>
+            </div>
+        </div>
+        <nav>
+            <a href="/index.html">Dashboard</a>
+            <a href="/teams.html" class="active">Teams</a>
+            <a href="/projects.html">Projects</a>
+            <a href="/tasks.html">Tasks</a>
+            <a href="/documents.html">Documents</a>
+            <a href="/intelligence.html">Team Intelligence</a>
+            <a href="/reports.html">Reports</a>
+        </nav>
+    </aside>
+    <main class="content">
+        <header class="topbar">
+            <div><h2>Teams</h2></div>
+        </header>
+        <section class="panel">
+            <h3>Create Team</h3>
+            <form id="teamForm" class="form-grid">
+                <input name="name" placeholder="Team name" required>
+                <input name="description" placeholder="Team description">
+                <button type="submit" class="primary-btn">Create Team</button>
+            </form>
+        </section>
+        <section class="panel">
+            <h3>Team Directory</h3>
+            <div id="teamList" class="card-grid"></div>
+        </section>
+    </main>
+</div>
+<script src="/js/api.js"></script>
+<script src="/js/teams.js"></script>
+</body>
+</html>
