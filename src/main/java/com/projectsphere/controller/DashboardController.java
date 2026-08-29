@@ -1,7 +1,6 @@
 package com.projectsphere.controller;
 
 import com.projectsphere.entity.Project;
-import com.projectsphere.service.IntelligenceService;
 import com.projectsphere.repository.ProjectRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,11 +14,9 @@ import java.util.Map;
 @RequestMapping("/api")
 public class DashboardController {
 
-    private final IntelligenceService intelligenceService;
     private final ProjectRepository projectRepository;
 
-    public DashboardController(IntelligenceService intelligenceService, ProjectRepository projectRepository) {
-        this.intelligenceService = intelligenceService;
+    public DashboardController(ProjectRepository projectRepository) {
         this.projectRepository = projectRepository;
     }
 

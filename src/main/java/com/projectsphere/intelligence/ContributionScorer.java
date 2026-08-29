@@ -17,7 +17,6 @@ public class ContributionScorer {
 
     public ContributionScoreResult scoreUser(User user, List<Contribution> contributions, List<Task> tasks, Project project) {
         int commitCount = contributions.stream().mapToInt(Contribution::getCommitCount).sum();
-        long codeChurn = contributions.stream().mapToLong(Contribution::getCodeChurn).sum();
         int filesChanged = contributions.stream().mapToInt(Contribution::getFilesChanged).sum();
         int pullRequestCount = contributions.stream().mapToInt(Contribution::getPullRequestCount).sum();
 

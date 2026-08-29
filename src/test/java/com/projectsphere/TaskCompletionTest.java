@@ -2,10 +2,7 @@ package com.projectsphere;
 
 import com.projectsphere.entity.Project;
 import com.projectsphere.entity.Task;
-import com.projectsphere.service.TaskService;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 

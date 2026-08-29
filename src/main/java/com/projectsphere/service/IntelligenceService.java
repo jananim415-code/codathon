@@ -125,7 +125,6 @@ public class IntelligenceService {
     }
 
     public List<Map<String, Object>> getFreeRiders(Long projectId) {
-        Map<String, Object> summary = (Map<String, Object>) analyzeProject(projectId).get("potentialFreeRiders");
         return List.of();
     }
 

@@ -3,8 +3,6 @@ package com.projectsphere.service;
 import com.projectsphere.entity.*;
 import com.projectsphere.exception.ResourceNotFoundException;
 import com.projectsphere.intelligence.ContributionScorer;
-import com.projectsphere.intelligence.FreeRiderDetector;
-import com.projectsphere.intelligence.ProjectHealthCalculator;
 import com.projectsphere.repository.*;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -25,18 +23,15 @@ public class ReportService {
     private final UserRepository userRepository;
     private final ContributionRepository contributionRepository;
     private final TaskRepository taskRepository;
-    private final HealthScoreRepository healthScoreRepository;
 
     public ReportService(ProjectRepository projectRepository,
                         UserRepository userRepository,
                         ContributionRepository contributionRepository,
-                        TaskRepository taskRepository,
-                        HealthScoreRepository healthScoreRepository) {
+                        TaskRepository taskRepository) {
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
         this.contributionRepository = contributionRepository;
         this.taskRepository = taskRepository;
-        this.healthScoreRepository = healthScoreRepository;
     }
 
     public byte[] generateProjectReport(Long projectId) {
@@ -109,7 +104,6 @@ public class ReportService {
         double mean = scoreList.stream().mapToDouble(ContributionScorer.ContributionScoreResult::getScore).average().orElse(0.0);
         double variance = scoreList.stream().mapToDouble(s -> Math.pow(s.getScore() - mean, 2)).average().orElse(0.0);
         double zScore = variance == 0 ? 0 : (scoreResult.getScore() - mean) / Math.sqrt(variance);
-        ProjectHealthCalculator.HealthResult health = new ProjectHealthCalculator().calculate(project, tasks, 80.0, 75.0);
 
         try (PDDocument document = new PDDocument()) {
             PDPage page = new PDPage();
