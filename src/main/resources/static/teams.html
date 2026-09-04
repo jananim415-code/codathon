@@ -19,6 +19,7 @@
         <nav>
             <a href="/index.html">Dashboard</a>
             <a href="/teams.html" class="active">Teams</a>
+            <a href="/users.html">Users</a>
             <a href="/projects.html">Projects</a>
             <a href="/tasks.html">Tasks</a>
             <a href="/documents.html">Documents</a>
@@ -39,8 +40,16 @@
             </form>
         </section>
         <section class="panel">
+            <h3>Manage Membership</h3>
+            <form id="membershipForm" class="form-grid">
+                <select name="teamId" id="membershipTeam"><option value="">Select team</option></select>
+                <select name="userId" id="membershipUser"><option value="">Select user</option></select>
+                <button type="submit" class="primary-btn">Add member</button>
+            </form>
+        </section>
+        <section class="panel">
             <h3>Team Directory</h3>
-            <div id="teamList" class="card-grid"></div>
+            <div id="teamList" class="card-grid"><p class="empty-state">Loading teams…</p></div>
         </section>
     </main>
 </div>

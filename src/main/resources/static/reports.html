@@ -19,6 +19,7 @@
         <nav>
             <a href="/index.html">Dashboard</a>
             <a href="/teams.html">Teams</a>
+            <a href="/users.html">Users</a>
             <a href="/projects.html">Projects</a>
             <a href="/tasks.html">Tasks</a>
             <a href="/documents.html">Documents</a>
@@ -30,9 +31,13 @@
         <header class="topbar"><div><h2>Reports</h2></div></header>
         <section class="panel">
             <h3>Download reports</h3>
-            <div class="report-actions">
-                <a id="projectReportLink" class="primary-btn" href="/api/reports/project/1">Download Project Report</a>
-                <a id="userReportLink" class="secondary-btn" href="/api/reports/project/1/user/1">Download User Report</a>
+            <div class="form-grid">
+                <select id="projectReportSelect"><option value="">Select project</option></select>
+                <select id="userReportSelect"><option value="">Select user</option></select>
+                <div class="report-actions">
+                    <a id="projectReportLink" class="primary-btn disabled" aria-disabled="true">Download Project Report</a>
+                    <a id="userReportLink" class="secondary-btn disabled" aria-disabled="true">Download User Report</a>
+                </div>
             </div>
         </section>
     </main>

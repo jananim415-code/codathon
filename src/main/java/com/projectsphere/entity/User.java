@@ -29,6 +29,10 @@ public class User {
 
     private String githubUsername;
 
+    @JsonIgnore
+    @Column(name = "password_hash")
+    private String passwordHash;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -65,6 +69,8 @@ public class User {
     public void setRole(Role role) { this.role = role; }
     public String getGithubUsername() { return githubUsername; }
     public void setGithubUsername(String githubUsername) { this.githubUsername = githubUsername; }
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public List<Team> getTeams() { return teams; }

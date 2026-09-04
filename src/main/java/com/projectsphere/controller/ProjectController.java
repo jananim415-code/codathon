@@ -1,5 +1,8 @@
 package com.projectsphere.controller;
 
+import com.projectsphere.dto.EntityDtoMapper;
+import com.projectsphere.dto.ProjectRequest;
+import com.projectsphere.dto.ProjectResponse;
 import com.projectsphere.entity.Project;
 import com.projectsphere.service.ProjectService;
 import jakarta.validation.Valid;
@@ -21,23 +24,29 @@ public class ProjectController {
     }
 
     @PostMapping("/projects")
-    public ResponseEntity<Project> createProject(@Valid @RequestBody Project project) {
-        return ResponseEntity.ok(projectService.createProject(project));
+    public ResponseEntity<ProjectResponse> createProject(@Valid @RequestBody ProjectRequest request) {
+        return ResponseEntity.ok(EntityDtoMapper.toResponse(projectService.createProject(EntityDtoMapper.toEntity(request))));
     }
 
     @GetMapping("/projects")
-    public ResponseEntity<List<Project>> listProjects() {
-        return ResponseEntity.ok(projectService.listProjects());
+    public ResponseEntity<List<ProjectResponse>> listProjects() {
+        return ResponseEntity.ok(projectService.listProjects().stream().map(EntityDtoMapper::toResponse).toList());
     }
 
     @GetMapping("/projects/{id}")
-    public ResponseEntity<Project> getProject(@PathVariable Long id) {
-        return ResponseEntity.ok(projectService.getProject(id));
+    public ResponseEntity<ProjectResponse> getProject(@PathVariable Long id) {
+        return ResponseEntity.ok(EntityDtoMapper.toResponse(projectService.getProject(id)));
     }
 
     @PutMapping("/projects/{id}")
-    public ResponseEntity<Project> updateProject(@PathVariable Long id, @Valid @RequestBody Project project) {
-        return ResponseEntity.ok(projectService.updateProject(id, project));
+    public ResponseEntity<ProjectResponse> updateProject(@PathVariable Long id, @Valid @RequestBody ProjectRequest request) {
+        return ResponseEntity.ok(EntityDtoMapper.toResponse(projectService.updateProject(id, EntityDtoMapper.toEntity(request))));
+    }
+
+    @DeleteMapping("/projects/{id}")
+    public ResponseEntity<Void> deleteProject(@PathVariable Long id) {
+        projectService.deleteProject(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/projects/{id}/stats")

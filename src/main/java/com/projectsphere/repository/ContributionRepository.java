@@ -10,5 +10,6 @@ import java.util.Optional;
 
 public interface ContributionRepository extends JpaRepository<Contribution, Long> {
     List<Contribution> findByProject(Project project);
+    List<Contribution> findByUser(User user);
     Optional<Contribution> findByProjectAndUser(Project project, User user);
 }

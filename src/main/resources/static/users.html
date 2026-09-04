@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Users | ProjectSphere</title><link rel="stylesheet" href="/css/style.css"></head>
+<body><div class="app-shell"><aside class="sidebar"><div class="brand"><div class="brand-mark">P</div><div><h1>ProjectSphere</h1><small>Unified Student Collaboration</small></div></div>
+<nav><a href="/index.html">Dashboard</a><a href="/teams.html">Teams</a><a href="/users.html" class="active">Users</a><a href="/projects.html">Projects</a><a href="/tasks.html">Tasks</a><a href="/documents.html">Documents</a><a href="/intelligence.html">Team Intelligence</a><a href="/reports.html">Reports</a></nav></aside>
+<main class="content"><header class="topbar"><h2>Users</h2><a class="secondary-btn" href="/auth.html">Sign in / Register</a></header>
+<section class="panel"><h3>Create User</h3><form id="userForm" class="form-grid"><input name="name" placeholder="Full name" required><input name="email" type="email" placeholder="Email" required><select name="role"><option value="STUDENT">Student</option><option value="TEAM_LEAD">Team lead</option><option value="MENTOR">Mentor</option></select><input name="githubUsername" placeholder="GitHub username"><button class="primary-btn" type="submit">Create User</button></form></section>
+<section class="panel"><h3>User Directory</h3><div id="userList" class="card-grid"><p class="empty-state">Loading users…</p></div></section></main></div><script src="/js/api.js"></script><script src="/js/users.js"></script></body></html>

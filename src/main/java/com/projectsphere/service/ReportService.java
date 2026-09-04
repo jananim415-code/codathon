@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -57,10 +56,14 @@ public class ReportService {
             stream.endText();
 
             int yCursor = 690;
+            List<Task> tasks = taskRepository.findByProject(project);
+            ContributionScorer scorer = new ContributionScorer();
             for (User member : members) {
+                List<Contribution> contributions = contributionsFor(project, member);
+                ContributionScorer.ContributionScoreResult score = scorer.scoreUser(member, contributions, tasks, project);
                 stream.beginText();
                 stream.newLineAtOffset(50, yCursor);
-                stream.showText(member.getName() + " - contribution report generated");
+                stream.showText(member.getName() + " - score: " + String.format("%.0f", score.getScore()) + "/100");
                 stream.endText();
                 yCursor -= 20;
             }
@@ -80,27 +83,18 @@ public class ReportService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        List<Contribution> contributions = contributionRepository.findByProject(project).stream()
-            .filter(c -> c.getUser() != null && c.getUser().getId().equals(user.getId()))
-            .toList();
-        if (contributions.isEmpty()) {
-            contributions = new ArrayList<>();
-            Contribution c = new Contribution();
-            c.setUser(user);
-            c.setProject(project);
-            c.setCommitCount(12);
-            c.setPullRequestCount(2);
-            c.setFilesChanged(20);
-            c.setCodeChurn(250);
-            c.setTrivialChanges(10);
-            c.setContributionScore(72.0);
-            contributions.add(c);
-        }
-
+        List<Contribution> contributions = contributionsFor(project, user);
         ContributionScorer scorer = new ContributionScorer();
         List<Task> tasks = taskRepository.findByProject(project);
-        ContributionScorer.ContributionScoreResult scoreResult = scorer.scoreUser(user, contributions, tasks, project);
-        List<ContributionScorer.ContributionScoreResult> scoreList = List.of(scoreResult);
+        List<User> members = project.getTeam() != null ? project.getTeam().getMembers() : userRepository.findAll();
+        List<ContributionScorer.ContributionScoreResult> scoreList = members.stream()
+            .map(member -> scorer.scoreUser(member, contributionsFor(project, member), tasks, project))
+            .toList();
+        ContributionScorer.ContributionScoreResult scoreResult = scoreList.stream()
+            .filter(result -> result.getUser().getId().equals(user.getId()))
+            .findFirst()
+            .orElseGet(() -> scorer.scoreUser(user, contributions, tasks, project));
+        if (scoreList.isEmpty()) scoreList = List.of(scoreResult);
         double mean = scoreList.stream().mapToDouble(ContributionScorer.ContributionScoreResult::getScore).average().orElse(0.0);
         double variance = scoreList.stream().mapToDouble(s -> Math.pow(s.getScore() - mean, 2)).average().orElse(0.0);
         double zScore = variance == 0 ? 0 : (scoreResult.getScore() - mean) / Math.sqrt(variance);
@@ -160,5 +154,14 @@ public class ReportService {
         } catch (IOException e) {
             throw new RuntimeException("Unable to generate PDF report", e);
         }
+
+    }
+
+    private List<Contribution> contributionsFor(Project project, User user) {
+        return contributionRepository.findByProject(project).stream()
+            .filter(contribution -> contribution.getUser() != null
+                && contribution.getUser().getId() != null
+                && contribution.getUser().getId().equals(user.getId()))
+            .toList();
     }
 }

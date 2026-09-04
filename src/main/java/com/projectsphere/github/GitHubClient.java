@@ -7,27 +7,35 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 @Component
 public class GitHubClient {
+    private static final Logger log = LoggerFactory.getLogger(GitHubClient.class);
 
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
     private final String demoRepository;
     private final String token;
+    private final boolean demoMode;
 
     public GitHubClient(RestClient restClient,
                        ObjectMapper objectMapper,
                        @Value("${app.github.demo-repository:https://github.com/example/student-project}") String demoRepository,
-                       @Value("${app.github.token:}") String token) {
+                       @Value("${app.github.token:}") String token,
+                       @Value("${app.demo-mode:true}") boolean demoMode) {
         this.restClient = restClient;
         this.objectMapper = objectMapper;
         this.demoRepository = demoRepository;
         this.token = token;
+        this.demoMode = demoMode;
     }
 
     public String getRepository() {
@@ -36,12 +44,12 @@ public class GitHubClient {
 
     public List<GitHubCommit> getCommits(String repositoryUrl) {
         if (token == null || token.isBlank()) {
-            return demoCommits();
+            return fallbackCommits();
         }
 
         String[] parts = extractOwnerAndRepo(repositoryUrl);
         if (parts == null) {
-            return demoCommits();
+            return fallbackCommits();
         }
 
         try {
@@ -51,7 +59,7 @@ public class GitHubClient {
                 .retrieve()
                 .toEntity(String.class);
             if (!response.getStatusCode().is2xxSuccessful()) {
-                return demoCommits();
+                return fallbackCommits();
             }
 
             JsonNode node = objectMapper.readTree(response.getBody());
@@ -65,20 +73,21 @@ public class GitHubClient {
                     commits.add(new GitHubCommit(sha, message, author, date));
                 }
             }
-            return commits.isEmpty() ? demoCommits() : commits;
+            return commits.isEmpty() ? fallbackCommits() : commits;
         } catch (Exception ex) {
-            return demoCommits();
+            log.warn("GitHub commits request failed; using fallback data: {}", ex.getClass().getSimpleName());
+            return fallbackCommits();
         }
     }
 
     public List<GitHubPullRequest> getPullRequests(String repositoryUrl) {
         if (token == null || token.isBlank()) {
-            return demoPullRequests();
+            return fallbackPullRequests();
         }
 
         String[] parts = extractOwnerAndRepo(repositoryUrl);
         if (parts == null) {
-            return demoPullRequests();
+            return fallbackPullRequests();
         }
 
         try {
@@ -88,7 +97,7 @@ public class GitHubClient {
                 .retrieve()
                 .toEntity(String.class);
             if (!response.getStatusCode().is2xxSuccessful()) {
-                return demoPullRequests();
+                return fallbackPullRequests();
             }
 
             JsonNode node = objectMapper.readTree(response.getBody());
@@ -103,25 +112,21 @@ public class GitHubClient {
                     ));
                 }
             }
-            return pulls.isEmpty() ? demoPullRequests() : pulls;
+            return pulls.isEmpty() ? fallbackPullRequests() : pulls;
         } catch (Exception ex) {
-            return demoPullRequests();
+            log.warn("GitHub pull requests request failed; using fallback data: {}", ex.getClass().getSimpleName());
+            return fallbackPullRequests();
         }
     }
 
     public List<String> getContributorActivity(String repositoryUrl) {
         if (token == null || token.isBlank()) {
-            return List.of(
-                "Aisha pushed updates to Smart Campus Assistant",
-                "Rahul reviewed documentation updates",
-                "Priya merged a feature branch",
-                "Demo GitHub Data"
-            );
+            return fallbackActivity();
         }
 
         String[] parts = extractOwnerAndRepo(repositoryUrl);
         if (parts == null) {
-            return List.of("Demo GitHub Data");
+            return fallbackActivity();
         }
 
         try {
@@ -131,11 +136,12 @@ public class GitHubClient {
                 .retrieve()
                 .toEntity(String.class);
             if (!response.getStatusCode().is2xxSuccessful()) {
-                return List.of("Demo GitHub Data");
+                return fallbackActivity();
             }
             return parseActivity(response.getBody());
         } catch (Exception ex) {
-            return List.of("Demo GitHub Data");
+            log.warn("GitHub activity request failed; using fallback data: {}", ex.getClass().getSimpleName());
+            return fallbackActivity();
         }
     }
 
@@ -157,7 +163,24 @@ public class GitHubClient {
             }
         } catch (IOException ignored) {
         }
-        return activities.isEmpty() ? List.of("Demo GitHub Data") : activities;
+        return activities.isEmpty() ? fallbackActivity() : activities;
+    }
+
+    private List<GitHubCommit> fallbackCommits() {
+        return demoMode ? demoCommits() : List.of();
+    }
+
+    private List<GitHubPullRequest> fallbackPullRequests() {
+        return demoMode ? demoPullRequests() : List.of();
+    }
+
+    private List<String> fallbackActivity() {
+        return demoMode ? List.of(
+            "Aisha pushed updates to Smart Campus Assistant",
+            "Rahul reviewed documentation updates",
+            "Priya merged a feature branch",
+            "Demo GitHub Data"
+        ) : List.of();
     }
 
     private List<GitHubCommit> demoCommits() {
@@ -180,18 +203,22 @@ public class GitHubClient {
         if (repositoryUrl == null || repositoryUrl.isBlank()) {
             return null;
         }
-        String cleaned = repositoryUrl.trim();
-        if (cleaned.endsWith("/")) {
-            cleaned = cleaned.substring(0, cleaned.length() - 1);
-        }
-        String[] parts = cleaned.split("github.com/");
-        if (parts.length != 2) {
+        try {
+            URI uri = new URI(repositoryUrl.trim());
+            if (!"https".equalsIgnoreCase(uri.getScheme()) ||
+                !"github.com".equalsIgnoreCase(uri.getHost()) ||
+                uri.getUserInfo() != null) {
+                return null;
+            }
+            String path = uri.getPath();
+            if (path == null) return null;
+            String[] repoParts = path.replaceFirst("^/", "").replaceFirst("/$", "").split("/");
+            if (repoParts.length != 2 || repoParts[0].isBlank() || repoParts[1].isBlank()) return null;
+            String repo = repoParts[1].endsWith(".git")
+                ? repoParts[1].substring(0, repoParts[1].length() - 4) : repoParts[1];
+            return repo.isBlank() ? null : new String[] { repoParts[0], repo };
+        } catch (URISyntaxException ex) {
             return null;
         }
-        String[] repoParts = parts[1].split("/");
-        if (repoParts.length < 2) {
-            return null;
-        }
-        return new String[] { repoParts[0], repoParts[1] };
     }
 }

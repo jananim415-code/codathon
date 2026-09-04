@@ -1,6 +1,8 @@
 package com.projectsphere.controller;
 
-import com.projectsphere.entity.Task;
+import com.projectsphere.dto.EntityDtoMapper;
+import com.projectsphere.dto.TaskRequest;
+import com.projectsphere.dto.TaskResponse;
 import com.projectsphere.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -19,23 +21,23 @@ public class TaskController {
     }
 
     @PostMapping("/tasks")
-    public ResponseEntity<Task> createTask(@Valid @RequestBody Task task) {
-        return ResponseEntity.ok(taskService.createTask(task));
+    public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody TaskRequest request) {
+        return ResponseEntity.ok(EntityDtoMapper.toResponse(taskService.createTask(EntityDtoMapper.toEntity(request))));
     }
 
     @GetMapping("/tasks")
-    public ResponseEntity<List<Task>> listTasks() {
-        return ResponseEntity.ok(taskService.listTasks());
+    public ResponseEntity<List<TaskResponse>> listTasks() {
+        return ResponseEntity.ok(taskService.listTasks().stream().map(EntityDtoMapper::toResponse).toList());
     }
 
     @GetMapping("/projects/{projectId}/tasks")
-    public ResponseEntity<List<Task>> getProjectTasks(@PathVariable Long projectId) {
-        return ResponseEntity.ok(taskService.getTasksByProject(projectId));
+    public ResponseEntity<List<TaskResponse>> getProjectTasks(@PathVariable Long projectId) {
+        return ResponseEntity.ok(taskService.getTasksByProject(projectId).stream().map(EntityDtoMapper::toResponse).toList());
     }
 
     @PutMapping("/tasks/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long id, @Valid @RequestBody Task task) {
-        return ResponseEntity.ok(taskService.updateTask(id, task));
+    public ResponseEntity<TaskResponse> updateTask(@PathVariable Long id, @Valid @RequestBody TaskRequest request) {
+        return ResponseEntity.ok(EntityDtoMapper.toResponse(taskService.updateTask(id, EntityDtoMapper.toEntity(request))));
     }
 
     @DeleteMapping("/tasks/{id}")

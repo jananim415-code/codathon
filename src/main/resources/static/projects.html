@@ -19,6 +19,7 @@
         <nav>
             <a href="/index.html">Dashboard</a>
             <a href="/teams.html">Teams</a>
+            <a href="/users.html">Users</a>
             <a href="/projects.html" class="active">Projects</a>
             <a href="/tasks.html">Tasks</a>
             <a href="/documents.html">Documents</a>
@@ -37,6 +38,7 @@
                 <input name="description" placeholder="Description">
                 <input name="deadline" type="date">
                 <input name="githubRepositoryUrl" placeholder="GitHub repository URL">
+                <select name="teamId" id="teamSelect"><option value="">No team</option></select>
                 <select name="status">
                     <option value="ACTIVE">ACTIVE</option>
                     <option value="COMPLETED">COMPLETED</option>
@@ -48,7 +50,7 @@
         </section>
         <section class="panel">
             <h3>Project List</h3>
-            <div id="projectList" class="card-grid"></div>
+            <div id="projectList" class="card-grid"><p class="empty-state">Loading projects…</p></div>
         </section>
     </main>
 </div>

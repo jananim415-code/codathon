@@ -58,7 +58,7 @@ public class ContributionScorer {
         if (maxValue <= 0) {
             return 0;
         }
-        return Math.min(1.0, value / maxValue) * 100.0;
+        return Math.min(1.0, value / maxValue);
     }
 
     private double safeCap(double value) {

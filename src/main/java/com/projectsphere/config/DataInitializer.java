@@ -1,15 +1,18 @@
 package com.projectsphere.config;
 
 import com.projectsphere.entity.*;
+import com.projectsphere.intelligence.ProjectHealthCalculator;
 import com.projectsphere.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Configuration
+@Profile("dev")
 public class DataInitializer {
 
     @Bean
@@ -95,11 +98,14 @@ public class DataInitializer {
 
             HealthScore healthScore = new HealthScore();
             healthScore.setProject(project);
-            healthScore.setCommitTrend(82.0);
-            healthScore.setTaskCompletionRate(62.5);
-            healthScore.setDeadlineScore(75.0);
-            healthScore.setHealthScore(78.0);
-            healthScore.setStatus(HealthScore.Status.MODERATE);
+            double taskCompletionRate = 4 * 100.0 / 8;
+            ProjectHealthCalculator.HealthResult health = new ProjectHealthCalculator()
+                .calculate(project, List.of(task1, task2, task3, task4, task5, task6, task7, task8), 80.0, taskCompletionRate);
+            healthScore.setCommitTrend(health.getCommitTrend());
+            healthScore.setTaskCompletionRate(health.getTaskCompletionRate());
+            healthScore.setDeadlineScore(health.getDeadlineScore());
+            healthScore.setHealthScore(health.getHealthScore());
+            healthScore.setStatus(HealthScore.Status.valueOf(health.getStatus()));
             healthScore.setCalculatedAt(java.time.LocalDateTime.now());
             healthScoreRepository.save(healthScore);
         };

@@ -5,6 +5,7 @@ import com.projectsphere.entity.User;
 import com.projectsphere.exception.ResourceNotFoundException;
 import com.projectsphere.repository.TeamRepository;
 import com.projectsphere.repository.UserRepository;
+import com.projectsphere.repository.ProjectRepository;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +16,13 @@ public class TeamService {
 
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
+    private final ProjectRepository projectRepository;
 
-    public TeamService(TeamRepository teamRepository, UserRepository userRepository) {
+    public TeamService(TeamRepository teamRepository, UserRepository userRepository,
+                       ProjectRepository projectRepository) {
         this.teamRepository = teamRepository;
         this.userRepository = userRepository;
+        this.projectRepository = projectRepository;
     }
 
     public Team createTeam(@Valid Team team) {
@@ -53,5 +57,21 @@ public class TeamService {
         user.getTeams().remove(team);
         teamRepository.save(team);
         userRepository.save(user);
+    }
+
+    public Team updateTeam(Long id, Team updated) {
+        Team existing = getTeam(id);
+        existing.setName(updated.getName());
+        existing.setDescription(updated.getDescription());
+        return teamRepository.save(existing);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void deleteTeam(Long id) {
+        Team team = getTeam(id);
+        projectRepository.findByTeam(team).forEach(project -> project.setTeam(null));
+        team.getMembers().forEach(user -> user.getTeams().remove(team));
+        team.getMembers().clear();
+        teamRepository.delete(team);
     }
 }

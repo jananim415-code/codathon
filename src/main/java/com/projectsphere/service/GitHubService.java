@@ -5,6 +5,7 @@ import com.projectsphere.github.GitHubClient;
 import com.projectsphere.github.GitHubCommit;
 import com.projectsphere.github.GitHubPullRequest;
 import com.projectsphere.repository.ProjectRepository;
+import com.projectsphere.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,7 +23,7 @@ public class GitHubService {
 
     public Project syncRepository(Long projectId) {
         Project project = projectRepository.findById(projectId)
-            .orElseThrow(() -> new IllegalArgumentException("Project not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
         if (project.getGithubRepositoryUrl() == null || project.getGithubRepositoryUrl().isBlank()) {
             project.setGithubRepositoryUrl(gitHubClient.getRepository());
         }
@@ -31,19 +32,19 @@ public class GitHubService {
 
     public List<GitHubCommit> getCommits(Long projectId) {
         Project project = projectRepository.findById(projectId)
-            .orElseThrow(() -> new IllegalArgumentException("Project not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
         return gitHubClient.getCommits(project.getGithubRepositoryUrl());
     }
 
     public List<GitHubPullRequest> getPullRequests(Long projectId) {
         Project project = projectRepository.findById(projectId)
-            .orElseThrow(() -> new IllegalArgumentException("Project not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
         return gitHubClient.getPullRequests(project.getGithubRepositoryUrl());
     }
 
     public List<String> getContributorActivity(Long projectId) {
         Project project = projectRepository.findById(projectId)
-            .orElseThrow(() -> new IllegalArgumentException("Project not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
         return gitHubClient.getContributorActivity(project.getGithubRepositoryUrl());
     }
 }

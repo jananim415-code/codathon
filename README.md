@@ -29,19 +29,19 @@ flowchart TD
     A[Presentation / API Layer] --> B[Service Layer]
     B --> C[Team Intelligence Engine]
     C --> D[GitHub Integration]
-    D --> E[Report Generation]
-    E --> F[Data Access Layer]
-    F --> G[PostgreSQL]
+    B --> E[Report Generation]
+    B --> F[Data Access Layer]
+    F --> G[H2 or PostgreSQL]
 ```
 
 The layers work as follows:
 - Presentation/API Layer: exposes REST endpoints and the static frontend.
 - Service Layer: coordinates business logic across users, teams, projects, tasks, documents, GitHub, intelligence, and reports.
 - Team Intelligence Engine: calculates contribution scores, detects low-contributors, and evaluates project health using transparent formulas.
-- GitHub Integration: fetches repository metadata and optionally uses a real GitHub token when provided.
-- Report Generation: creates PDF reports for individual students and team-level summaries.
+- GitHub Integration: fetches commits, pull requests, and activity, with deterministic demo fallback when no token is configured.
+- Report Generation: creates PDF reports for individual students and team-level summaries with Apache PDFBox.
 - Data Access Layer: persists application state using Spring Data JPA.
-- PostgreSQL: production-ready relational database; H2 is used for demo mode.
+- PostgreSQL: production database; H2 is used for development/demo mode.
 
 ### Technology Stack
 - Java 21
@@ -116,13 +116,16 @@ git clone YOUR_GITHUB_REPOSITORY_URL
 cd ProjectSphere
 ```
 
-### Run
+### Run (development/demo)
 ```bash
-mvn clean install
+mvn clean test
 mvn spring-boot:run
 ```
 
-Open: http://localhost:8080
+Open: http://localhost:8080. The default `dev` profile uses an in-memory H2
+database and loads demo records. Use `mvn -Dspring-boot.run.profiles=prod
+spring-boot:run` only after configuring PostgreSQL and all production
+environment variables.
 
 ### Database Setup
 Create PostgreSQL database:
@@ -206,14 +209,18 @@ This means:
 - the dashboard remains useful during live demos
 
 ### API Endpoints
-- Teams: `/api/teams`
-- Users: `/api/users`
-- Projects: `/api/projects`
-- Tasks: `/api/tasks`
-- Documents: `/api/documents`
-- GitHub: `/api/projects/{projectId}/github/*`
+- Authentication: `POST /api/auth/register`, `POST /api/auth/login`
+- Dashboard: `GET /api/dashboard`
+- Users, teams, projects, tasks, and documents: `/api/users`, `/api/teams`,
+  `/api/projects`, `/api/tasks`, and `/api/documents`
+- GitHub: `/api/projects/{projectId}/github/*`, `/api/github/demo-status`,
+  `POST /api/github/webhook`
 - Intelligence: `/api/intelligence/*`
 - Reports: `/api/reports/*`
+
+Read-only `GET /api/**` operations are public. All create, update, delete, and
+analysis operations require `Authorization: Bearer <JWT>`. See
+[`docs/API.md`](docs/API.md) for payloads, response details, and status codes.
 
 ### Sample Workflow
 1. Open the dashboard.
@@ -232,11 +239,20 @@ This means:
 - `src/main/java/com/projectsphere/intelligence/ProjectHealthCalculator.java`
 - `src/main/java/com/projectsphere/service/IntelligenceService.java`
 - `src/main/java/com/projectsphere/github/GitHubClient.java`
-- `src/main/java/com/projectsphere/report/ContributionReportGenerator.java`
+- `src/main/java/com/projectsphere/service/ReportService.java`
 - `src/main/resources/static/index.html`
+- `docs/ARCHITECTURE.md`
+- `docs/ALGORITHMS.md`
+- `docs/API.md`
 
 ### Security Note
-Never commit GITHUB_TOKEN or database credentials to GitHub. Store them locally in environment variables or an untracked `.env` file.
+Use `/api/auth/register` and `/api/auth/login` to obtain a JWT for write
+operations. Set `JWT_SECRET` to a unique base64-encoded secret (at least 32
+decoded bytes) when deploying. Never commit JWT, GitHub, webhook, or database
+credentials; store them in environment variables or an untracked `.env` file.
+Production runs with `SPRING_PROFILES_ACTIVE=prod`, PostgreSQL, Flyway
+migrations, and no demo seed data. Configure `GITHUB_WEBHOOK_SECRET` to
+authenticate webhook deliveries.
 
 ### License
 This project is released under the MIT License.

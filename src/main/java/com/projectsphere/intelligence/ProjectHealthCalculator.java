@@ -5,6 +5,7 @@ import com.projectsphere.entity.Task;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.time.temporal.ChronoUnit;
 
 public class ProjectHealthCalculator {
 
@@ -26,7 +27,7 @@ public class ProjectHealthCalculator {
         if (project == null || project.getDeadline() == null) {
             return 100;
         }
-        long daysRemaining = LocalDate.now().until(project.getDeadline()).getDays();
+        long daysRemaining = ChronoUnit.DAYS.between(LocalDate.now(), project.getDeadline());
         if (daysRemaining > 14) {
             return 100;
         }

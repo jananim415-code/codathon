@@ -1,6 +1,8 @@
 package com.projectsphere.controller;
 
-import com.projectsphere.entity.Document;
+import com.projectsphere.dto.DocumentRequest;
+import com.projectsphere.dto.DocumentResponse;
+import com.projectsphere.dto.EntityDtoMapper;
 import com.projectsphere.service.DocumentService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -19,23 +21,23 @@ public class DocumentController {
     }
 
     @PostMapping("/documents")
-    public ResponseEntity<Document> createDocument(@Valid @RequestBody Document document) {
-        return ResponseEntity.ok(documentService.createDocument(document));
+    public ResponseEntity<DocumentResponse> createDocument(@Valid @RequestBody DocumentRequest request) {
+        return ResponseEntity.ok(EntityDtoMapper.toResponse(documentService.createDocument(EntityDtoMapper.toEntity(request))));
     }
 
     @GetMapping("/documents")
-    public ResponseEntity<List<Document>> listDocuments() {
-        return ResponseEntity.ok(documentService.listDocuments());
+    public ResponseEntity<List<DocumentResponse>> listDocuments() {
+        return ResponseEntity.ok(documentService.listDocuments().stream().map(EntityDtoMapper::toResponse).toList());
     }
 
     @GetMapping("/projects/{projectId}/documents")
-    public ResponseEntity<List<Document>> getProjectDocuments(@PathVariable Long projectId) {
-        return ResponseEntity.ok(documentService.getProjectDocuments(projectId));
+    public ResponseEntity<List<DocumentResponse>> getProjectDocuments(@PathVariable Long projectId) {
+        return ResponseEntity.ok(documentService.getProjectDocuments(projectId).stream().map(EntityDtoMapper::toResponse).toList());
     }
 
     @PutMapping("/documents/{id}")
-    public ResponseEntity<Document> updateDocument(@PathVariable Long id, @Valid @RequestBody Document document) {
-        return ResponseEntity.ok(documentService.updateDocument(id, document));
+    public ResponseEntity<DocumentResponse> updateDocument(@PathVariable Long id, @Valid @RequestBody DocumentRequest request) {
+        return ResponseEntity.ok(EntityDtoMapper.toResponse(documentService.updateDocument(id, EntityDtoMapper.toEntity(request))));
     }
 
     @DeleteMapping("/documents/{id}")

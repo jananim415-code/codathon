@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 import java.util.Map;
@@ -17,9 +18,15 @@ import java.util.Map;
 public class GitHubController {
 
     private final GitHubService gitHubService;
+    private final boolean demoMode;
+    private final String token;
 
-    public GitHubController(GitHubService gitHubService) {
+    public GitHubController(GitHubService gitHubService,
+                            @Value("${app.demo-mode:true}") boolean demoMode,
+                            @Value("${app.github.token:}") String token) {
         this.gitHubService = gitHubService;
+        this.demoMode = demoMode;
+        this.token = token;
     }
 
     @GetMapping("/projects/{projectId}/github/commits")
@@ -39,6 +46,9 @@ public class GitHubController {
 
     @GetMapping("/github/demo-status")
     public ResponseEntity<Map<String, Object>> status() {
-        return ResponseEntity.ok(Map.of("demoMode", true, "message", "Demo GitHub Data"));
+        boolean usingDemoData = demoMode || token == null || token.isBlank();
+        return ResponseEntity.ok(Map.of(
+            "demoMode", usingDemoData,
+            "message", usingDemoData ? "Demo GitHub Data" : "GitHub API integration enabled"));
     }
 }

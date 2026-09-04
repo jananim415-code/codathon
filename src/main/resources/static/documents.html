@@ -19,6 +19,7 @@
         <nav>
             <a href="/index.html">Dashboard</a>
             <a href="/teams.html">Teams</a>
+            <a href="/users.html">Users</a>
             <a href="/projects.html">Projects</a>
             <a href="/tasks.html">Tasks</a>
             <a href="/documents.html" class="active">Documents</a>
@@ -32,15 +33,15 @@
             <h3>Create Document</h3>
             <form id="documentForm" class="form-grid">
                 <input name="title" placeholder="Document title" required>
-                <input name="projectId" placeholder="Project ID" required>
-                <input name="createdById" placeholder="Created by user ID" required>
+                <select name="projectId" id="projectSelect" required><option value="">Select project</option></select>
+                <select name="createdById" id="userSelect" required><option value="">Select author</option></select>
                 <textarea name="content" rows="8" placeholder="Document content"></textarea>
                 <button type="submit" class="primary-btn">Save Document</button>
             </form>
         </section>
         <section class="panel">
             <h3>Project Documents</h3>
-            <div id="documentList" class="document-list"></div>
+            <div id="documentList" class="document-list"><p class="empty-state">Loading documents…</p></div>
         </section>
     </main>
 </div>

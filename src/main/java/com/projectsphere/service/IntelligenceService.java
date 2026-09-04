@@ -8,66 +8,60 @@ import com.projectsphere.intelligence.FreeRiderDetector;
 import com.projectsphere.intelligence.ProjectHealthCalculator;
 import com.projectsphere.repository.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 public class IntelligenceService {
 
     private final ProjectRepository projectRepository;
-    private final TeamRepository teamRepository;
     private final TaskRepository taskRepository;
     private final ContributionRepository contributionRepository;
     private final HealthScoreRepository healthScoreRepository;
     private final UserRepository userRepository;
     private final GitHubClient gitHubClient;
+    private final boolean demoMode;
 
     public IntelligenceService(ProjectRepository projectRepository,
-                              TeamRepository teamRepository,
                               TaskRepository taskRepository,
                               ContributionRepository contributionRepository,
                               HealthScoreRepository healthScoreRepository,
                               UserRepository userRepository,
-                              GitHubClient gitHubClient) {
+                              GitHubClient gitHubClient,
+                              @Value("${app.demo-mode:true}") boolean demoMode) {
         this.projectRepository = projectRepository;
-        this.teamRepository = teamRepository;
         this.taskRepository = taskRepository;
         this.contributionRepository = contributionRepository;
         this.healthScoreRepository = healthScoreRepository;
         this.userRepository = userRepository;
         this.gitHubClient = gitHubClient;
+        this.demoMode = demoMode;
     }
 
+    @Transactional
     public Map<String, Object> analyzeProject(Long projectId) {
         Project project = projectRepository.findById(projectId)
             .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
 
         List<Task> tasks = taskRepository.findByProject(project);
         double taskCompletionRate = tasks.isEmpty() ? 0 : (tasks.stream().filter(task -> task.getStatus() == Task.Status.COMPLETED).count() * 100.0) / tasks.size();
-        double commitTrend = 80.0;
+        double commitTrend = calculateCommitTrend(project);
         double deadlineScore = new ProjectHealthCalculator().calculateDeadlineScore(project);
 
         Team team = project.getTeam();
         List<User> members = team != null ? team.getMembers() : userRepository.findAll();
-        List<ContributionScorer.ContributionScoreResult> resultList = new ArrayList<>();
-        for (User member : members) {
-            List<Contribution> contributions = contributionRepository.findByProject(project).stream()
-                .filter(c -> c.getUser() != null && c.getUser().getId().equals(member.getId()))
-                .toList();
-            if (contributions.isEmpty()) {
-                contributions = createDemoContribution(project, member);
-            }
-            ContributionScorer scorer = new ContributionScorer();
-            ContributionScorer.ContributionScoreResult score = scorer.scoreUser(member, contributions, tasks, project);
-            resultList.add(score);
-        }
+        List<ContributionScorer.ContributionScoreResult> resultList = scoreMembers(project, tasks, members);
 
         FreeRiderDetector detector = new FreeRiderDetector();
-        List<FreeRiderDetector.FreeRiderResult> freeRiders = detector.detect(resultList);
+        List<FreeRiderDetector.FreeRiderResult> freeRiders = detector.detect(resultList).stream()
+            .filter(FreeRiderDetector.FreeRiderResult::isFlagged)
+            .toList();
         double teamAverage = resultList.stream().mapToDouble(ContributionScorer.ContributionScoreResult::getScore).average().orElse(0.0);
 
         ProjectHealthCalculator calculator = new ProjectHealthCalculator();
@@ -96,36 +90,57 @@ public class IntelligenceService {
         return summary;
     }
 
+    @Transactional
     public void analyzeAllProjects() {
         for (Project project : projectRepository.findAll()) {
             analyzeProject(project.getId());
         }
     }
 
+    @Transactional
     public List<Map<String, Object>> getContributions(Long projectId) {
         Project project = projectRepository.findById(projectId)
             .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+        List<Task> tasks = taskRepository.findByProject(project);
+        List<User> members = project.getTeam() != null ? project.getTeam().getMembers() : userRepository.findAll();
+        List<ContributionScorer.ContributionScoreResult> scores = scoreMembers(project, tasks, members);
         List<Map<String, Object>> result = new ArrayList<>();
-        for (User member : project.getTeam().getMembers()) {
-            List<Contribution> contributions = contributionRepository.findByProject(project).stream()
-                .filter(c -> c.getUser() != null && c.getUser().getId().equals(member.getId()))
-                .toList();
-            if (contributions.isEmpty()) {
+        for (ContributionScorer.ContributionScoreResult score : scores) {
+            User member = score.getUser();
+            List<Contribution> contributions = contributionsFor(project, member);
+            if (contributions.isEmpty() && demoMode) {
                 contributions = createDemoContribution(project, member);
             }
             result.add(Map.of(
                 "user", member.getName(),
-                "score", new ContributionScorer().scoreUser(member, contributions, taskRepository.findByProject(project), project).getScore(),
+                "score", score.getScore(),
                 "commits", contributions.stream().mapToInt(Contribution::getCommitCount).sum(),
                 "prs", contributions.stream().mapToInt(Contribution::getPullRequestCount).sum(),
-                "taskCompletion", 80
+                "taskCompletion", taskCompletionRate(member, tasks)
             ));
         }
         return result;
     }
 
+    @Transactional
     public List<Map<String, Object>> getFreeRiders(Long projectId) {
-        return List.of();
+        Project project = projectRepository.findById(projectId)
+            .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+        List<Task> tasks = taskRepository.findByProject(project);
+        List<User> members = project.getTeam() != null ? project.getTeam().getMembers() : userRepository.findAll();
+        return new FreeRiderDetector().detect(scoreMembers(project, tasks, members)).stream()
+            .filter(FreeRiderDetector.FreeRiderResult::isFlagged)
+            .map(result -> {
+                Map<String, Object> item = new HashMap<>();
+                item.put("user", result.getUser().getName());
+                item.put("contributionScore", result.getContributionScore());
+                item.put("teamAverage", result.getTeamAverage());
+                item.put("zScore", result.getZScore());
+                item.put("flagged", result.isFlagged());
+                item.put("explanation", result.getExplanation());
+                return item;
+            })
+            .toList();
     }
 
     public Map<String, Object> getHealth(Long projectId) {
@@ -134,6 +149,25 @@ public class IntelligenceService {
 
     public Map<String, Object> getSummary(Long projectId) {
         return analyzeProject(projectId);
+    }
+
+    private List<ContributionScorer.ContributionScoreResult> scoreMembers(Project project, List<Task> tasks, List<User> members) {
+        List<ContributionScorer.ContributionScoreResult> scores = new ArrayList<>();
+        for (User member : members) {
+            List<Contribution> contributions = contributionsFor(project, member);
+            if (contributions.isEmpty() && demoMode) {
+                contributions = createDemoContribution(project, member);
+            }
+            scores.add(new ContributionScorer().scoreUser(member, contributions, tasks, project));
+        }
+        return scores;
+    }
+
+    private List<Contribution> contributionsFor(Project project, User member) {
+        return contributionRepository.findByProject(project).stream()
+            .filter(c -> c.getUser() != null && c.getUser().getId() != null
+                && c.getUser().getId().equals(member.getId()))
+            .toList();
     }
 
     private List<Contribution> createDemoContribution(Project project, User user) {
@@ -177,19 +211,23 @@ public class IntelligenceService {
         return recommendations;
     }
 
-    public List<Map<String, Object>> getDashboardData() {
-        Map<String, Object> response = new HashMap<>();
-        response.put("teams", teamRepository.count());
-        response.put("projects", projectRepository.count());
-        response.put("activeProjects", projectRepository.findAll().stream().filter(p -> p.getStatus() == Project.Status.ACTIVE).count());
-        response.put("atRiskProjects", projectRepository.findAll().stream().filter(p -> p.getStatus() == Project.Status.AT_RISK).count());
-        response.put("teamMembers", userRepository.count());
-        response.put("overallTaskCompletion", 75.0);
-        response.put("projectsHealth", new ArrayList<>());
-        return List.of(response);
-    }
-
     public List<String> getRecentActivity(Project project) {
         return gitHubClient.getContributorActivity(project.getGithubRepositoryUrl());
+    }
+
+    private double calculateCommitTrend(Project project) {
+        return Math.min(100.0, gitHubClient.getCommits(project.getGithubRepositoryUrl()).size() * 20.0);
+    }
+
+    private double taskCompletionRate(User user, List<Task> tasks) {
+        List<Task> assigned = tasks.stream()
+            .filter(task -> task.getAssignedUser() != null
+                && task.getAssignedUser().getId() != null
+                && task.getAssignedUser().getId().equals(user.getId()))
+            .toList();
+        if (assigned.isEmpty()) {
+            return 0.0;
+        }
+        return assigned.stream().filter(task -> task.getStatus() == Task.Status.COMPLETED).count() * 100.0 / assigned.size();
     }
 }

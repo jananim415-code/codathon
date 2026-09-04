@@ -19,6 +19,7 @@
         <nav>
             <a href="/index.html">Dashboard</a>
             <a href="/teams.html">Teams</a>
+            <a href="/users.html">Users</a>
             <a href="/projects.html">Projects</a>
             <a href="/tasks.html" class="active">Tasks</a>
             <a href="/documents.html">Documents</a>
@@ -44,14 +45,14 @@
                     <option value="HIGH">HIGH</option>
                 </select>
                 <input name="dueDate" type="date">
-                <input name="projectId" placeholder="Project ID">
-                <input name="assignedUserId" placeholder="Assigned user ID">
+                <select name="projectId" id="projectSelect"><option value="">No project</option></select>
+                <select name="assignedUserId" id="userSelect"><option value="">Unassigned</option></select>
                 <button type="submit" class="primary-btn">Create Task</button>
             </form>
         </section>
         <section class="panel">
             <h3>Task Board</h3>
-            <div id="taskList" class="task-board"></div>
+            <div id="taskList" class="task-board"><p class="empty-state">Loading tasks…</p></div>
         </section>
     </main>
 </div>
