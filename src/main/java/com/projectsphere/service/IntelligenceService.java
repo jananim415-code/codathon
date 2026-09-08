@@ -2,7 +2,6 @@ package com.projectsphere.service;
 
 import com.projectsphere.entity.*;
 import com.projectsphere.exception.ResourceNotFoundException;
-import com.projectsphere.github.GitHubClient;
 import com.projectsphere.intelligence.ContributionScorer;
 import com.projectsphere.intelligence.FreeRiderDetector;
 import com.projectsphere.intelligence.ProjectHealthCalculator;
@@ -19,27 +18,21 @@ import java.util.Map;
 public class IntelligenceService {
 
     private final ProjectRepository projectRepository;
-    private final TeamRepository teamRepository;
     private final TaskRepository taskRepository;
     private final ContributionRepository contributionRepository;
     private final HealthScoreRepository healthScoreRepository;
     private final UserRepository userRepository;
-    private final GitHubClient gitHubClient;
 
     public IntelligenceService(ProjectRepository projectRepository,
-                              TeamRepository teamRepository,
                               TaskRepository taskRepository,
                               ContributionRepository contributionRepository,
                               HealthScoreRepository healthScoreRepository,
-                              UserRepository userRepository,
-                              GitHubClient gitHubClient) {
+                              UserRepository userRepository) {
         this.projectRepository = projectRepository;
-        this.teamRepository = teamRepository;
         this.taskRepository = taskRepository;
         this.contributionRepository = contributionRepository;
         this.healthScoreRepository = healthScoreRepository;
         this.userRepository = userRepository;
-        this.gitHubClient = gitHubClient;
     }
 
     public Map<String, Object> analyzeProject(Long projectId) {
@@ -175,21 +168,5 @@ public class IntelligenceService {
         }
         recommendations.add("Keep documentation and GitHub activity aligned with the team plan.");
         return recommendations;
-    }
-
-    public List<Map<String, Object>> getDashboardData() {
-        Map<String, Object> response = new HashMap<>();
-        response.put("teams", teamRepository.count());
-        response.put("projects", projectRepository.count());
-        response.put("activeProjects", projectRepository.findAll().stream().filter(p -> p.getStatus() == Project.Status.ACTIVE).count());
-        response.put("atRiskProjects", projectRepository.findAll().stream().filter(p -> p.getStatus() == Project.Status.AT_RISK).count());
-        response.put("teamMembers", userRepository.count());
-        response.put("overallTaskCompletion", 75.0);
-        response.put("projectsHealth", new ArrayList<>());
-        return List.of(response);
-    }
-
-    public List<String> getRecentActivity(Project project) {
-        return gitHubClient.getContributorActivity(project.getGithubRepositoryUrl());
     }
 }
