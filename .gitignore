@@ -27,6 +27,8 @@ application-secret.properties
 # OS files
 .DS_Store
 Thumbs.db
+desktop.ini
+apache-maven*
 
 # Keep project files tracked
 !pom.xml

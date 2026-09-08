@@ -79,13 +79,4 @@ public class TaskService {
         Task task = getTask(id);
         taskRepository.delete(task);
     }
-
-    public double calculateTaskCompletionPercentage(Project project) {
-        List<Task> tasks = taskRepository.findByProject(project);
-        if (tasks.isEmpty()) {
-            return 0;
-        }
-        long completed = tasks.stream().filter(task -> task.getStatus() == Task.Status.COMPLETED).count();
-        return (completed * 100.0) / tasks.size();
-    }
 }

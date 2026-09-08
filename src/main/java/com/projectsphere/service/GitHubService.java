@@ -20,15 +20,6 @@ public class GitHubService {
         this.projectRepository = projectRepository;
     }
 
-    public Project syncRepository(Long projectId) {
-        Project project = projectRepository.findById(projectId)
-            .orElseThrow(() -> new IllegalArgumentException("Project not found"));
-        if (project.getGithubRepositoryUrl() == null || project.getGithubRepositoryUrl().isBlank()) {
-            project.setGithubRepositoryUrl(gitHubClient.getRepository());
-        }
-        return projectRepository.save(project);
-    }
-
     public List<GitHubCommit> getCommits(Long projectId) {
         Project project = projectRepository.findById(projectId)
             .orElseThrow(() -> new IllegalArgumentException("Project not found"));
